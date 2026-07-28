@@ -1,5 +1,7 @@
 # Rocky New to Ball 
 
+![fist my bump](/images/fistmybump.gif)
+
 ## Self-host your own semi-superintelligent Rocky (Project Hail Mary) 
 
 *Using the README a bit like a blog/journal but I hope you can find your way around
@@ -62,6 +64,8 @@ feel high tech
 and what `ROCKY` says... 
 
 ![ROCKY SPEAKS](/images/rocky_speaks.png)
+
+![rocky_dance](/images/rocky_dance.gif)
 
 So this makes it not too hard to identify between action/mention and when he 
 speaks. 
@@ -129,4 +133,15 @@ rg -i new project-hail-mary-2026.txt
 #5475:I have news, friend Grace.
 ```
 
-# Serving Grug
+### Serving Grug
+
+I have other models running on my device (i5-100 and RTX 3060).
+
+We shouldn't need much to serve this model and I'll add a hardware example when we're done. 
+
+~~We'll use [LLMFit](https://github.com/AlexsJones/llmfit) to check the model on this device.~~
+
+# :( 
+![Open ze ticket, now](/images/llmfit_open_ticket.png)
+
+Moving on...
