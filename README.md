@@ -7,7 +7,7 @@
 
 ![fist my bump](/images/fistmybump.gif)
 
-self-hosted Rocky (Project Hail Mary) - small local model, minimal web UI, optional voice.
+self-hosted Rocky (Project Hail Mary) - small local model, minimal web UI, optional voice (eerily similar)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)
@@ -55,7 +55,7 @@ Before the what, I offer four things led to this repo explaining why:
 - the [pdf containing the text for each character](https://assets.scriptslug.com/live/pdf/scripts/project-hail-mary-2026.pdf.pdf)
 
 ...and I knew what had to be done. There's an audience at home for this so we'll
-start it on desktop and try and fit it on a Raspberry Pi.
+start it on desktop and try and ~~fit it on a Raspberry Pi~~.
 
 ### Rules
 - Self hosted
@@ -69,10 +69,10 @@ start it on desktop and try and fit it on a Raspberry Pi.
 - Optional (for voice): ~4 GB free disk for `coqui-tts` in a second venv
 
 ### Roadmap
-- ✅ Make it work (serve it) — transformers + FastAPI (sglang couldn't handle the Nanbeige arch)
-- ✅ A system prompt with Rocky's speech patterns — see `data/processed/system_prompt.md`
+- ✅ Make it work (serve it). transformers + FastAPI (sglang couldn't handle the Nanbeige arch)
+- ✅ A system prompt with Rocky's speech patterns. See `data/processed/system_prompt.md`
 - ✅ Minimal web UI at :67 with the rocky_dance gif that plays only while streaming
-- ✅ TTS — YourTTS voice clone via a persistent worker on :59720
+- ✅ TTS. YourTTS voice clone via a persistent worker on :59720
 - **maybe** finetune it to be really rocky-like (*but this could be
   overkill, it already seems to write pretty well*)
   - it is a small model so there is potentially enough content in it to tune
@@ -186,7 +186,7 @@ Default port is ~~30000~~ 67.
 
 First tried sglang. grug-3b is a Nanbeige arch (`NanbeigeForCausalLM` and ships
 its own `modeling_nanbeige.py` which needs `trust_remote_code=True`) and sglang's
-model registry doesn't know about it — same story for vLLM. Rather than write
+model registry doesn't know about it. Same story for vLLM. Rather than write
 a backend adapter for a 3B model, we serve it with plain transformers behind
 a tiny FastAPI shim that speaks the OpenAI Chat Completions subset the web UI
 needs. See [`scripts/serve.py`](scripts/serve.py).
@@ -201,7 +201,7 @@ task open    # open http://127.0.0.1:67
 task stop
 ```
 
-The UI ([`ui/index.html`](ui/index.html)) is a single file — dark monospace, one
+The UI ([`ui/index.html`](ui/index.html)) is a single file. Dark monospace, one
 input, the `rocky_dance.gif` frozen when idle and playing while streaming, a
 collapsible `<think>` block, and an optional voice toggle. Or hit the API:
 
@@ -219,20 +219,24 @@ zero-shot voice cloning. `serve.py` auto-launches a persistent TTS worker on
 `:59720` at boot so subsequent calls are ~1-2 s instead of a 10 s subprocess
 spawn. To enable it, one-time:
 
+Pick a directory on a disk with ~4 GB free (mine lives outside the repo since
+model weights are big). Then:
+
 ```bash
 # create a second venv (coqui-tts pins transformers ~4.55, incompatible with grug)
-uv venv D:/rocky-say/venv --python 3.11
-uv pip install --python D:/rocky-say/venv --index-strategy unsafe-best-match \
+uv venv "$ROCKY_DIR/venv" --python 3.11
+uv pip install --python "$ROCKY_DIR/venv" --index-strategy unsafe-best-match \
     --extra-index-url https://download.pytorch.org/whl/cu124 \
     coqui-tts torch==2.5.1+cu124 torchaudio==2.5.1+cu124 transformers==4.55.0
 
-# reference audio (~22 MB) — used as the voice clone target
-curl -L -o D:/rocky-say/rocky_training_audio_scrubbed.wav \
+# reference audio (~22 MB), used as the voice clone target
+curl -L -o "$ROCKY_DIR/rocky_training_audio_scrubbed.wav" \
     https://pedramamini.com/dropbox/rocky_training_audio_scrubbed.wav
-
-# tell serve.py where to look (env var, overridable per-machine)
-$env:ROCKY_DIR = "D:/rocky-say"
 ```
+
+Then export `ROCKY_DIR` (e.g. `export ROCKY_DIR=~/.rocky_say` on unix, or
+`$env:ROCKY_DIR = "$HOME/.rocky_say"` in PowerShell) before `task start` so
+`serve.py` picks it up.
 
 Then `task start`. First `/v1/tts` call pulls the YourTTS weights (~425 MB)
 into HF cache; after that the worker stays warm.
