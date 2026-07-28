@@ -37,7 +37,8 @@ start it on desktop and try and fit it on a Raspberry Pi.
   - This could work well by splitting the text for all of Rocky's parts and
     dropping it into an LLM to write some behaviour based on what is in the script
 - add TTS
-- and then **maybe** finetune it to be really rocky-like (*but this could be overkill, it already seems to sound pretty good*)
+- and then **maybe** finetune it to be really rocky-like (*but this could be 
+  overkill, it already seems to write pretty well*)
   - it is a small model so there is potentially enough content in it to tune
   - If there isn't we'll use [doubleword](https://doubleword.ai/) batch to
     generate some more synthetic training examples based on the script,
@@ -52,4 +53,24 @@ start it on desktop and try and fit it on a Raspberry Pi.
 feel high tech
   - As its a script, it is pretty nicely laid out (analysis below)
 
-Whats in the script?
+### Whats in the script?
+
+`Rocky` is mostly mentioned for what he does
+
+![Rocky Action](/images/rocky_action.png)   
+
+and what `ROCKY` says... 
+
+![ROCKY SPEAKS](/images/rocky_speaks.png)
+
+So this makes it not too hard to identify between action/mention and when he 
+speaks. 
+
+We mostly care about the speech so we get a rough estimate (because of multiline 
+speech) w/:
+
+```bash
+rg ROCKY project-hail-mary-2026.txt | wc -l
+
+# 196 
+```
