@@ -89,7 +89,7 @@ start it on desktop and try and ~~fit it on a Raspberry Pi~~.
 
 grug-3b has a 256k context window and we only feed 22 example lines in the prompt right now. The extract has 267 lines of Rocky dialogue in `data/processed/rocky_lines.txt` so plenty of room to shove more in.
 
-Ie hand-added the baseball / new-to-human-things attitude into `data/processed/system_prompt.md` so Rocky still leans into that vibe.
+I hand-added the baseball / new-to-human-things attitude into `data/processed/system_prompt.md` so Rocky still leans into the attitude he has in the film. 
 - PDF script
   - *pls don't sue, rocky is new to ball*
 - Text from the script it using [https://www.pdfforge.org/online/en/extract-text](https://www.pdfforge.org/online/en/extract-text)
