@@ -50,4 +50,6 @@ start it on desktop and try and fit it on a Raspberry Pi.
 - Text from the script it using [https://www.pdfforge.org/online/en/extract-text](https://www.pdfforge.org/online/en/extract-text)
  because it doesn't need OCR and I'm not faffing with choosing a cli tool just to
 feel high tech
-  - As its a script, it is pretty nice
+  - As its a script, it is pretty nicely laid out (analysis below)
+
+Whats in the script?
