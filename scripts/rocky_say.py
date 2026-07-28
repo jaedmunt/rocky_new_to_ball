@@ -119,16 +119,27 @@ import re
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
 # === CONFIGURATION ===
-ROCKY_DIR = os.path.expanduser("~/.rocky_say")
+ROCKY_DIR = os.environ.get("ROCKY_DIR") or str(Path.home() / ".rocky_say")
 VENV_DIR = os.path.join(ROCKY_DIR, "venv")
-REFERENCE = os.path.join(ROCKY_DIR, "rocky_training_audio_scrubbed.wav")
+REFERENCE = os.environ.get("ROCKY_REF") or os.path.join(ROCKY_DIR, "rocky_training_audio_scrubbed.wav")
 RVC_MODEL = os.path.join(ROCKY_DIR, "rocky_voice.pth")
 RVC_DIR = os.path.expanduser("~/Downloads/hail_mary_audio/rvc")
 RVC_VENV = os.path.expanduser("~/Downloads/hail_mary_audio/.venv-rvc")
 SERVER_PORT = 59720
-SERVER_PID = "/tmp/rocky_server.pid"
+SERVER_PID = str(Path(tempfile.gettempdir()) / "rocky_server.pid")
+IS_WIN = sys.platform.startswith("win")
+
+
+def _venv_python():
+    """Locate the TTS venv's python, cross-platform."""
+    if IS_WIN:
+        p = Path(VENV_DIR) / "Scripts" / "python.exe"
+        return str(p) if p.exists() else "python"
+    p = Path(VENV_DIR) / "bin" / "python3"
+    return str(p) if p.exists() else "python3.11"
 
 # Also check legacy location
 if not os.path.exists(REFERENCE):
@@ -340,17 +351,16 @@ def server_start():
 
     print("Starting Rocky TTS server (model load takes ~17s)...", file=sys.stderr)
 
-    # Write server script inline
     server_script = f'''
 import os, sys, tempfile, time, json
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 os.environ["OMP_NUM_THREADS"] = "1"
 from http.server import HTTPServer, BaseHTTPRequestHandler
-REFERENCE = "{REFERENCE}"
-print("Loading XTTS v2...", flush=True)
+REFERENCE = r"{REFERENCE}"
+print("Loading YourTTS...", flush=True)
 t0 = time.time()
 from TTS.api import TTS
-tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2")
+tts = TTS("tts_models/multilingual/multi-dataset/your_tts")
 print(f"Ready in {{time.time()-t0:.0f}}s on port {SERVER_PORT}", flush=True)
 
 class H(BaseHTTPRequestHandler):
@@ -377,17 +387,17 @@ class H(BaseHTTPRequestHandler):
 
 HTTPServer(("127.0.0.1",{SERVER_PORT}), H).serve_forever()
 '''
-    # Find python3.11 in venv or system
-    python = os.path.join(VENV_DIR, "bin", "python3")
-    if not os.path.exists(python):
-        python = "python3.11"
-
-    proc = subprocess.Popen(
-        [python, "-c", server_script],
-        stdout=open("/tmp/rocky_server.log", "w"),
-        stderr=subprocess.STDOUT,
-        start_new_session=True,
-    )
+    python = _venv_python()
+    log_path = str(Path(tempfile.gettempdir()) / "rocky_server.log")
+    popen_kwargs = {
+        "stdout": open(log_path, "w"),
+        "stderr": subprocess.STDOUT,
+    }
+    if IS_WIN:
+        popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | 0x00000008
+    else:
+        popen_kwargs["start_new_session"] = True
+    proc = subprocess.Popen([python, "-c", server_script], **popen_kwargs)
     with open(SERVER_PID, "w") as f:
         f.write(str(proc.pid))
 
@@ -451,9 +461,7 @@ def generate_via_server(text):
 
 def generate_standalone(text):
     """Standalone XTTS generation (slow path ~22s)."""
-    python = os.path.join(VENV_DIR, "bin", "python3")
-    if not os.path.exists(python):
-        python = "python3.11"
+    python = _venv_python()
 
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         tmp = f.name
@@ -465,7 +473,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 os.environ["OMP_NUM_THREADS"] = "1"
 from TTS.api import TTS
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2")
-tts.tts_to_file(text="""{escaped_text}""", speaker_wav="{REFERENCE}", language="en", file_path="{tmp}")
+tts.tts_to_file(text="""{escaped_text}""", speaker_wav=r"{REFERENCE}", language="en", file_path=r"{tmp}")
 '''
     result = subprocess.run([python, "-c", script], capture_output=True)
     if os.path.exists(tmp) and os.path.getsize(tmp) > 0:
@@ -478,9 +486,7 @@ tts.tts_to_file(text="""{escaped_text}""", speaker_wav="{REFERENCE}", language="
 
 def generate_yourtts(text):
     """Generate with YourTTS zero-shot voice cloning (best quality in A/B testing)."""
-    python = os.path.join(VENV_DIR, "bin", "python3")
-    if not os.path.exists(python):
-        python = "python3.11"
+    python = _venv_python()
 
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         tmp = f.name
@@ -492,7 +498,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 os.environ["OMP_NUM_THREADS"] = "1"
 from TTS.api import TTS
 tts = TTS("tts_models/multilingual/multi-dataset/your_tts")
-tts.tts_to_file(text="""{escaped_text}""", speaker_wav="{REFERENCE}", language="en", file_path="{tmp}")
+tts.tts_to_file(text="""{escaped_text}""", speaker_wav=r"{REFERENCE}", language="en", file_path=r"{tmp}")
 '''
     result = subprocess.run([python, "-c", script], capture_output=True)
     if os.path.exists(tmp) and os.path.getsize(tmp) > 0:
@@ -500,6 +506,8 @@ tts.tts_to_file(text="""{escaped_text}""", speaker_wav="{REFERENCE}", language="
             wav = f.read()
         os.unlink(tmp)
         return wav
+    if result.stderr:
+        print("yourtts stderr:", result.stderr.decode(errors="replace")[-800:], file=sys.stderr)
     return None
 
 
@@ -758,6 +766,29 @@ def main():
         print(args.output)
     else:
         play_audio(wav)
+
+
+def synthesize(text, model="yourtts", speed=1.5, transform=True):
+    """Programmatic entry point. Returns WAV bytes, or None on failure."""
+    if not text or not text.strip():
+        return None
+    if not os.path.exists(REFERENCE):
+        return None
+    if transform:
+        text = rocky_transform(text)
+    wav = generate_via_server(text)
+    if not wav:
+        if model == "rvc":
+            wav = generate_rvc(text)
+        elif model == "openvoice":
+            wav = generate_openvoice(text)
+        elif model == "yourtts":
+            wav = generate_yourtts(text)
+        else:
+            wav = generate_standalone(text)
+    if wav and speed and speed != 1.0:
+        wav = apply_speed(wav, speed)
+    return wav
 
 
 if __name__ == "__main__":

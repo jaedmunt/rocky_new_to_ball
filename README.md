@@ -1,8 +1,37 @@
-# Rocky New to Ball 
+
+<div align="center">
+
+# Rocky New to Ball
+
+## Self-host your own Rocky (Project Hail Mary) 
+
+![demo](/images/demo-banner.png)
 
 ![fist my bump](/images/fistmybump.gif)
 
-## Self-host your own semi-superintelligent Rocky (Project Hail Mary) 
+self-hosted Rocky (Project Hail Mary) - small local model, minimal web UI, optional voice.
+
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)
+![Transformers](https://img.shields.io/badge/%F0%9F%A4%97%20Transformers-FFD21E?logoColor=black)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![uv](https://img.shields.io/badge/uv-DE5FE9?logo=astral&logoColor=white)
+![Task](https://img.shields.io/badge/Task-29BEB0?logo=task&logoColor=white)
+
+Powered by [grug-3b](https://huggingface.co/ProCreations/grug-3b), a LoRA of [Nanbeige4.2-3B](https://huggingface.co/Nanbeige/Nanbeige4.2-3B).
+
+</div>
+
+## Quick Start
+
+```bash
+task start   # start server in background
+task open    # open the UI in your browser
+task stop    # kill it
+```
+
+UI at <http://127.0.0.1:67>. See `Taskfile.yml` for the rest (`serve`, `restart`, `status`).
+
 
 *Using the README a bit like a blog/journal but I hope you can find your way around
 the project alright and enjoy it!*
@@ -32,19 +61,26 @@ start it on desktop and try and fit it on a Raspberry Pi.
 - Self hosted
 - True to character
 
+### Requirements
+- Nvidia GPU w/ CUDA enabled (RTX 3060 12GB used for this; bf16 model ~6GB)
+- [uv](https://docs.astral.sh/uv/) for python envs
+- [go-task](https://taskfile.dev) for the `task ...` commands
+- Python 3.11 (installed via uv)
+- Optional (for voice): ~4 GB free disk for `coqui-tts` in a second venv
+
 ### Roadmap
-- Make it work (serve it)
-  - *and hope ([we will check](https://github.com/AlexsJones/llmfit)) its not too much while my PC is runing an embedding models running for next 30 hours*
-- A system prompt with some general guidance on who it is 
-  - This could work well by splitting the text for all of Rocky's parts and
-    dropping it into an LLM to write some behaviour based on what is in the script
-- add TTS
-- and then **maybe** finetune it to be really rocky-like (*but this could be 
+- ✅ Make it work (serve it) — transformers + FastAPI (sglang couldn't handle the Nanbeige arch)
+- ✅ A system prompt with Rocky's speech patterns — see `data/processed/system_prompt.md`
+- ✅ Minimal web UI at :67 with the rocky_dance gif that plays only while streaming
+- ✅ TTS — YourTTS voice clone via a persistent worker on :59720
+- **maybe** finetune it to be really rocky-like (*but this could be
   overkill, it already seems to write pretty well*)
   - it is a small model so there is potentially enough content in it to tune
   - If there isn't we'll use [doubleword](https://doubleword.ai/) batch to
     generate some more synthetic training examples based on the script,
     and roll with those
+- Maybe serve [SillyTavern](https://docs.sillytavern.app/extensions/expression-images/) or somethhing else for sprites...
+  - Rocky's block shape would be a good sprite
 
 ### Data 
 *(deciding how I use it later but grabbed on first sesh)*
@@ -145,3 +181,62 @@ We shouldn't need much to serve this model and I'll add a hardware example when 
 ![Open ze ticket, now](/images/llmfit_open_ticket.png)
 
 Moving on...
+
+We'll keep the model in the repo rather than globally and serve it in an env.
+
+Default port is ~~30000~~ 67.
+
+First tried sglang. grug-3b is a Nanbeige arch (`NanbeigeForCausalLM` and ships
+its own `modeling_nanbeige.py` which needs `trust_remote_code=True`) and sglang's
+model registry doesn't know about it — same story for vLLM. Rather than write
+a backend adapter for a 3B model, we serve it with plain transformers behind
+a tiny FastAPI shim that speaks the OpenAI Chat Completions subset the web UI
+needs. See [`scripts/serve.py`](scripts/serve.py).
+
+Deps are in [`requirements.txt`](requirements.txt) and everything wires through
+[`Taskfile.yml`](Taskfile.yml):
+
+```bash
+task setup   # one-time: pull ~8GB of grug-3b weights into ./models/
+task start   # background: launches serve.py via uv
+task open    # open http://127.0.0.1:67
+task stop
+```
+
+The UI ([`ui/index.html`](ui/index.html)) is a single file — dark monospace, one
+input, the `rocky_dance.gif` frozen when idle and playing while streaming, a
+collapsible `<think>` block, and an optional voice toggle. Or hit the API:
+
+```bash
+curl http://127.0.0.1:67/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"grug-3b","messages":[{"role":"user","content":"hi"}],"max_tokens":128}'
+```
+
+### Voice
+
+The `/v1/tts` endpoint uses [pedramamini/rocky_say](https://gist.github.com/pedramamini/fa5f6ef99dae79add220188419230642)
+(vendored in [`scripts/rocky_say.py`](scripts/rocky_say.py)) with YourTTS
+zero-shot voice cloning. `serve.py` auto-launches a persistent TTS worker on
+`:59720` at boot so subsequent calls are ~1-2 s instead of a 10 s subprocess
+spawn. To enable it, one-time:
+
+```bash
+# create a second venv (coqui-tts pins transformers ~4.55, incompatible with grug)
+uv venv D:/rocky-say/venv --python 3.11
+uv pip install --python D:/rocky-say/venv --index-strategy unsafe-best-match \
+    --extra-index-url https://download.pytorch.org/whl/cu124 \
+    coqui-tts torch==2.5.1+cu124 torchaudio==2.5.1+cu124 transformers==4.55.0
+
+# reference audio (~22 MB) — used as the voice clone target
+curl -L -o D:/rocky-say/rocky_training_audio_scrubbed.wav \
+    https://pedramamini.com/dropbox/rocky_training_audio_scrubbed.wav
+
+# tell serve.py where to look (env var, overridable per-machine)
+$env:ROCKY_DIR = "D:/rocky-say"
+```
+
+Then `task start`. First `/v1/tts` call pulls the YourTTS weights (~425 MB)
+into HF cache; after that the worker stays warm.
+
+

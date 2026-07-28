@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>hail mary / rocky link</title>
+<style>
+  :root {
+    --bg:      #0a0d12;
+    --bg-2:    #0e1219;
+    --panel:   #14171e;
+    --line:    #23272f;
+    --line-hi: #3a3f4a;
+    --ink:     #e8dfd0;
+    --dim:     #7d7568;
+    --amber:   #c97d4e;
+    --amber-hi:#e39664;
+    --teal:    #6faf9a;
+    --rock:    #3a2418;
+    --rock-hi: #55341e;
+    --rock-md: #251508;
+    --rock-lo: #120a04;
+    --crack:   #050201;
+    --shirt:   #4a4a2e;
+    --shirt-lo:#2a2a18;
+    --vent:    #0a0604;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font: 13px/1.55 ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    background:
+      radial-gradient(1200px 800px at 90% -10%, rgba(201,125,78,.06), transparent 60%),
+      radial-gradient(900px 700px at -10% 110%, rgba(111,175,154,.04), transparent 60%),
+      var(--bg);
+  }
+
+  aside {
+    border-right: 1px solid var(--line);
+    padding: 22px 20px 20px;
+    display: flex; flex-direction: column; gap: 18px;
+    background: linear-gradient(180deg, var(--bg-2), var(--bg));
+    box-shadow: inset -1px 0 0 rgba(255,255,255,.02), inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  .brand {
+    display: flex; flex-direction: column; gap: 2px;
+    padding-bottom: 12px; border-bottom: 1px dashed var(--line);
+  }
+  .brand .tag { font-size: 10px; letter-spacing: .28em; color: var(--dim); }
+  .brand .name { font-size: 13px; letter-spacing: .18em; color: var(--ink); text-transform: uppercase; }
+  .brand .sub { font-size: 10px; letter-spacing: .18em; color: var(--amber); text-transform: uppercase; }
+
+  .stage {
+    position: relative;
+    width: 100%; aspect-ratio: 1;
+    display: grid; place-items: center;
+    background:
+      radial-gradient(60% 45% at 50% 30%, rgba(255,255,255,.03), transparent 70%),
+      radial-gradient(80% 60% at 50% 68%, rgba(201,125,78,.12), transparent 70%),
+      linear-gradient(180deg, rgba(255,255,255,.015) 0 30%, transparent 40%, rgba(0,0,0,.45));
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.05),
+      inset 0 -20px 40px rgba(0,0,0,.4),
+      0 1px 0 rgba(255,255,255,.02);
+  }
+  .stage::before, .stage::after {
+    content:""; position:absolute; left:8px; right:8px; height:1px;
+    background: linear-gradient(90deg, transparent, var(--line-hi), transparent);
+  }
+  .stage::before { top: 8px; } .stage::after { bottom: 8px; }
+  .corner { position:absolute; width:10px; height:10px; border:1px solid var(--line-hi); }
+  .c-tl { top:4px; left:4px; border-right:none; border-bottom:none; }
+  .c-tr { top:4px; right:4px; border-left:none; border-bottom:none; }
+  .c-bl { bottom:4px; left:4px; border-right:none; border-top:none; }
+  .c-br { bottom:4px; right:4px; border-left:none; border-top:none; }
+
+  .rocky-holder { position: relative; width: 92%; height: 92%; display: grid; place-items: center; }
+  .rocky-holder img,
+  .rocky-holder canvas {
+    max-width: 100%; max-height: 100%; width: auto; height: auto;
+    display: block; image-rendering: auto;
+    filter: drop-shadow(0 8px 10px rgba(0,0,0,.5));
+  }
+  .rocky-holder img { display: none; }
+  .rocky-holder.talking img { display: block; }
+  .rocky-holder.talking canvas { display: none; }
+
+  .limb { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .1s ease; }
+  .body-g { transform-box: fill-box; transform-origin: 50% 50%; }
+
+  .rocky.talking .limb-a { animation: limbTap 0.50s ease-in-out infinite alternate;              }
+  .rocky.talking .limb-b { animation: limbTap 0.46s ease-in-out infinite alternate; animation-delay: -0.10s; }
+  .rocky.talking .limb-c { animation: limbTap 0.52s ease-in-out infinite alternate; animation-delay: -0.22s; }
+  .rocky.talking .limb-d { animation: limbTap 0.44s ease-in-out infinite alternate; animation-delay: -0.16s; }
+  .rocky.talking .limb-e { animation: limbTap 0.48s ease-in-out infinite alternate; animation-delay: -0.06s; }
+  .rocky.talking .body-g { animation: body    0.42s ease-in-out infinite alternate; }
+  .rocky.talking .vent   { animation: vent    0.42s ease-in-out infinite alternate; }
+  @keyframes limbTap { from { transform: rotate(-2deg); } to { transform: rotate(3deg); } }
+  @keyframes body    { from { transform: scale(1); } to { transform: scale(1.012); } }
+  @keyframes vent    { from { opacity: .8; } to { opacity: 1; filter: drop-shadow(0 0 2px var(--amber-hi)); } }
+
+  .brick { stroke: var(--crack); stroke-width: 1.4; stroke-linejoin: miter; stroke-linecap: butt; }
+  .brick.d { fill: var(--rock-md); }
+  .brick.m { fill: var(--rock);    }
+  .brick.h { fill: var(--rock-hi); }
+  .brick.k { fill: var(--rock-lo); }
+
+  .readout {
+    display: grid; grid-template-columns: 10px 1fr auto; gap: 8px;
+    align-items: center;
+    font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--dim);
+    padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px;
+    background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.35));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  .dot { width:8px; height:8px; border-radius:50%; background: var(--line-hi); }
+  .readout.on { color: var(--amber-hi); border-color: rgba(201,125,78,.45); }
+  .readout.on .dot { background: var(--amber-hi); box-shadow: 0 0 8px var(--amber); animation: blink 1s steps(2, end) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+
+  .controls { display: flex; flex-direction: column; gap: 8px; font-size: 11px; color: var(--dim); }
+  .controls .row {
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px;
+    padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px;
+    text-transform: uppercase; letter-spacing: .16em;
+    background: linear-gradient(180deg, rgba(255,255,255,.015), rgba(0,0,0,.15));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+  }
+  .controls input {
+    width: 100px; background: rgba(0,0,0,.35); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 3px; padding: 3px 6px; font: inherit;
+    text-align: right; letter-spacing: 0;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,.3);
+    transition: border-color .12s ease;
+  }
+  .controls input:focus { outline: none; border-color: rgba(201,125,78,.55); }
+
+  .foot { margin-top: auto; font-size: 10px; color: var(--dim); letter-spacing: .16em; text-transform: uppercase; }
+  .foot a { color: var(--amber); text-decoration: none; }
+
+  main { display: flex; flex-direction: column; min-height: 100vh; }
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 40px; border-bottom: 1px solid var(--line);
+    font-size: 10px; letter-spacing: .28em; color: var(--dim); text-transform: uppercase;
+  }
+  header .r { color: var(--amber); }
+  #log {
+    flex: 1; overflow-y: auto;
+    padding: 28px 40px 20px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .msg { max-width: 780px; }
+  .msg .who {
+    font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--dim); margin-bottom: 6px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .msg .who::before {
+    content: ""; width: 10px; height: 1px; background: var(--line-hi);
+  }
+  .msg.you .who { color: var(--amber); }
+  .msg.you .who::before { background: var(--amber); }
+  .msg .body {
+    white-space: pre-wrap; word-wrap: break-word;
+    padding-left: 18px;
+    border-left: 1px solid var(--line);
+    color: rgba(232,223,208,.94);
+  }
+  .msg.you .body {
+    border-left-color: rgba(201,125,78,.45);
+    box-shadow: inset 2px 0 0 rgba(201,125,78,.15);
+  }
+  .think {
+    display: block; margin: 0 0 8px;
+    font-size: 12px; color: var(--dim);
+    border: 1px dashed var(--line); border-radius: 3px;
+    background: rgba(255,255,255,.015);
+  }
+  .think > summary {
+    padding: 4px 10px; cursor: pointer; letter-spacing: .18em; text-transform: uppercase;
+    font-size: 10px; color: var(--dim);
+    list-style: none; user-select: none;
+  }
+  .think > summary::before { content: "◇ "; color: var(--amber); }
+  .think[open] > summary::before { content: "◈ "; }
+  .think .think-body { padding: 4px 12px 8px; white-space: pre-wrap; }
+  .think.live {
+    border-color: rgba(201,125,78,.45);
+    background: linear-gradient(90deg, rgba(201,125,78,.04), rgba(111,175,154,.03));
+    animation: thinkPulse 1.6s ease-in-out infinite;
+  }
+  .think.live > summary { color: var(--amber-hi); }
+  .think.live > summary::before { content: "◆ "; }
+  .think.live .think-body {
+    color: var(--ink);
+    background:
+      linear-gradient(90deg, transparent, rgba(201,125,78,.10), transparent) 0 0 / 200% 100% no-repeat;
+    animation: thinkShimmer 2.4s linear infinite;
+  }
+  @keyframes thinkPulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(201,125,78,0); }
+    50%      { box-shadow: 0 0 14px -2px rgba(201,125,78,.35); }
+  }
+  @keyframes thinkShimmer {
+    0%   { background-position: -50% 0; }
+    100% { background-position: 150% 0; }
+  }
+
+  form {
+    display: flex; gap: 8px;
+    padding: 14px 40px 24px;
+    border-top: 1px solid var(--line);
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,.25));
+  }
+  textarea {
+    flex: 1;
+    background: linear-gradient(180deg, #10131a, var(--panel));
+    color: var(--ink);
+    border: 1px solid var(--line); border-radius: 4px;
+    padding: 10px 12px; font: inherit; resize: none;
+    min-height: 44px; max-height: 240px; outline: none;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,.35), inset 0 -1px 0 rgba(255,255,255,.02);
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea:focus {
+    border-color: rgba(201,125,78,.6);
+    box-shadow: inset 0 1px 0 rgba(0,0,0,.35), 0 0 0 1px rgba(201,125,78,.15);
+  }
+  button {
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.15));
+    color: var(--ink);
+    border: 1px solid var(--line); border-radius: 4px;
+    padding: 0 18px; font: inherit; cursor: pointer;
+    letter-spacing: .2em; text-transform: uppercase; font-size: 11px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  button:hover:not(:disabled) {
+    border-color: rgba(201,125,78,.55); color: var(--amber-hi);
+    background: linear-gradient(180deg, rgba(201,125,78,.10), rgba(201,125,78,.02));
+  }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .35; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand">
+    <div class="tag">HAIL MARY</div>
+    <div class="name">Rocky Link</div>
+    <div class="sub">// grug-3b — local xmit</div>
+  </div>
+
+  <div class="stage">
+    <span class="corner c-tl"></span><span class="corner c-tr"></span>
+    <span class="corner c-bl"></span><span class="corner c-br"></span>
+
+    <div id="rocky" class="rocky-holder">
+      <canvas id="rockyStill"></canvas>
+      <img id="rockyImg" src="/images/rocky_dance.gif" alt="rocky"/>
+    </div>
+  </div>
+
+  <div class="readout" id="status"><span class="dot"></span><span>signal</span><span id="stateTxt">idle</span></div>
+
+  <div class="controls">
+    <div class="row">you <input id="username" type="text" value="grace" maxlength="20"/></div>
+    <div class="row">temp <input id="temp" type="number" value="0.7" step="0.1" min="0" max="2"/></div>
+    <div class="row">max tok <input id="maxt" type="number" value="1024" step="128" min="16" max="8192"/></div>
+    <div class="row">model <input id="model" type="text" value="grug-3b"/></div>
+    <div class="row">voice <input id="voice" type="checkbox"/></div>
+  </div>
+
+  <div class="foot">
+    :67 • <span id="lat">--</span> ms
+  </div>
+</aside>
+
+<main>
+  <header>
+    <div>◇ mission log</div>
+    <div style="display:flex; gap:14px; align-items:center;">
+      <button id="clear" type="button" style="padding:4px 10px;">clear</button>
+      <div class="r" id="hdrState">standby</div>
+    </div>
+  </header>
+  <div id="log"></div>
+  <form id="form">
+    <textarea id="input" placeholder="talk to rocky · enter to xmit · shift+enter newline"></textarea>
+    <button id="send" type="submit">xmit</button>
+  </form>
+</main>
+
+<audio id="rockyAudio" hidden></audio>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const log = $("log"), input = $("input"), form = $("form"), send = $("send"), clearBtn = $("clear");
+const rocky = $("rocky"), status = $("status"), stateTxt = $("stateTxt"), hdrState = $("hdrState"), lat = $("lat");
+const rockyImg = $("rockyImg"), rockyStill = $("rockyStill");
+const usernameInput = $("username");
+const voiceInput = $("voice");
+const rockyAudio = $("rockyAudio");
+const history = [];
+
+rockyImg.addEventListener("load", () => {
+  const w = rockyImg.naturalWidth, h = rockyImg.naturalHeight;
+  rockyStill.width = w; rockyStill.height = h;
+  rockyStill.getContext("2d").drawImage(rockyImg, 0, 0);
+}, { once: true });
+const GIF_SRC = rockyImg.src;
+
+const savedName = localStorage.getItem("rocky.username");
+if (savedName) usernameInput.value = savedName;
+usernameInput.addEventListener("change", () => {
+  const v = usernameInput.value.trim() || "grace";
+  usernameInput.value = v;
+  localStorage.setItem("rocky.username", v);
+});
+const myName = () => (usernameInput.value.trim() || "grace");
+
+voiceInput.checked = localStorage.getItem("rocky.voice") === "1";
+voiceInput.addEventListener("change", () => {
+  localStorage.setItem("rocky.voice", voiceInput.checked ? "1" : "0");
+});
+
+async function speak(text) {
+  if (!voiceInput.checked) return;
+  const trimmed = text.trim();
+  if (!trimmed) return;
+  try {
+    const res = await fetch("/v1/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: trimmed, model: "yourtts", speed: 1.5 }),
+    });
+    if (res.status === 503) return;
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    rockyAudio.src = url;
+    rockyAudio.play().catch(() => {});
+  } catch {}
+}
+
+const escapeHtml = (s) => s.replace(/[&<>]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[c]));
+
+function renderAssistant(text) {
+  const parts = [];
+  let i = 0, mode = "think", live = true;
+  while (i < text.length) {
+    if (mode === "think") {
+      const close = text.indexOf("</think>", i);
+      if (close === -1) { parts.push({ t: "think", v: text.slice(i), live }); break; }
+      parts.push({ t: "think", v: text.slice(i, close), live: false });
+      i = close + 8;
+      mode = "say";
+    } else {
+      const open = text.indexOf("<think>", i);
+      if (open === -1) { parts.push({ t: "say", v: text.slice(i) }); break; }
+      if (open > i) parts.push({ t: "say", v: text.slice(i, open) });
+      i = open + 7;
+      mode = "think";
+    }
+  }
+  return parts.map(p => {
+    if (p.t === "say") return escapeHtml(p.v);
+    const cls = "think" + (p.live ? " live" : "");
+    const label = p.live ? "thinking…" : "think";
+    return `<details class="${cls}" open><summary>${label}</summary><div class="think-body">${escapeHtml(p.v)}</div></details>`;
+  }).join("");
+}
+
+function ts() {
+  const d = new Date();
+  return `T+${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+}
+
+function addMsg(role, text) {
+  const wrap = document.createElement("div");
+  const who = role === "user" ? myName() : "rocky";
+  wrap.className = "msg " + (role === "user" ? "you" : "rocky");
+  wrap.innerHTML = `<div class="who">${ts()} · ${escapeHtml(who)}</div><div class="body"></div>`;
+  const body = wrap.querySelector(".body");
+  if (role === "user") body.textContent = text;
+  else body.innerHTML = renderAssistant(text);
+  log.appendChild(wrap);
+  log.scrollTop = log.scrollHeight;
+  return body;
+}
+
+function setTalking(on) {
+  rocky.classList.toggle("talking", on);
+  status.classList.toggle("on", on);
+  stateTxt.textContent = on ? "xmit" : "idle";
+  hdrState.textContent = on ? "receiving" : "standby";
+  if (on) rockyImg.src = GIF_SRC + "?t=" + Date.now();
+}
+
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+});
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  send.disabled = true;
+  addMsg("user", text);
+  history.push({ role: "user", content: text });
+
+  const bodyEl = addMsg("assistant", "");
+  setTalking(true);
+  const started = performance.now();
+
+  let acc = "";
+  try {
+    const res = await fetch("/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: $("model").value,
+        messages: history,
+        temperature: parseFloat($("temp").value),
+        max_tokens: parseInt($("maxt").value, 10),
+        stream: true,
+        user_name: myName(),
+      }),
+    });
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const data = line.slice(5).trim();
+        if (data === "[DONE]") continue;
+        try {
+          const j = JSON.parse(data);
+          const delta = j.choices?.[0]?.delta?.content;
+          if (delta) { acc += delta; bodyEl.innerHTML = renderAssistant(acc); log.scrollTop = log.scrollHeight; }
+        } catch {}
+      }
+    }
+    history.push({ role: "assistant", content: acc });
+  } catch (err) {
+    bodyEl.textContent = "// link error: " + err.message;
+  } finally {
+    setTalking(false);
+    lat.textContent = Math.round(performance.now() - started);
+    send.disabled = false;
+    input.focus();
+    if (acc.trim()) {
+      const closeIdx = acc.lastIndexOf("</think>");
+      const spoken = (closeIdx >= 0 ? acc.slice(closeIdx + 8) : acc)
+        .replace(/<think>[\s\S]*?<\/think>/g, "")
+        .trim();
+      if (spoken) speak(spoken);
+    }
+  }
+});
+
+clearBtn.addEventListener("click", () => {
+  history.length = 0;
+  log.innerHTML = "";
+  lat.textContent = "--";
+  input.focus();
+});
+
+input.focus();
+</script>
+</body>
+</html>

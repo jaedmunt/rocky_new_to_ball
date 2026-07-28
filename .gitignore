@@ -1,0 +1,8 @@
+!.gitkeep
+
+.env
+models/
+grug-env/
+grug-env-win/
+
+__pycache__/
