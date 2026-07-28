@@ -9,7 +9,7 @@
 
 self-hosted Rocky (Project Hail Mary) - small local model, minimal web UI, optional voice (eerily similar)
 
-Fun fact discovered while building this -the phrase ['Rocky new to ball'](https://www.youtube.com/watch?v=17OYHirpmqg) (receipts here) does not actually appear in the script. We added it back :)
+Fun fact discovered while building this -the phrase ['Rocky new to ball'](https://www.youtube.com/watch?v=17OYHirpmqg) (receipts here) does not actually appear in the script. I added it back :)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)
