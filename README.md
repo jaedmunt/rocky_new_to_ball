@@ -101,8 +101,6 @@ and what `ROCKY` says...
 
 ![ROCKY SPEAKS](/images/rocky_speaks.png)
 
-![rocky_dance](/images/rocky_dance.gif)
-
 So this makes it not too hard to identify between action/mention and when he 
 speaks. 
 
