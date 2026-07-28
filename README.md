@@ -9,6 +9,8 @@
 
 self-hosted Rocky (Project Hail Mary) - small local model, minimal web UI, optional voice (eerily similar)
 
+Fun fact discovered while building this -the phrase ['Rocky new to ball'](https://www.youtube.com/watch?v=17OYHirpmqg) (receipts here) does not actually appear in the script. We added it back :)
+
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)
 ![Transformers](https://img.shields.io/badge/%F0%9F%A4%97%20Transformers-FFD21E?logoColor=black)
@@ -84,6 +86,10 @@ start it on desktop and try and ~~fit it on a Raspberry Pi~~.
 
 ### Data 
 *(deciding how I use it later but grabbed on first sesh)*
+
+grug-3b has a 256k context window and we only feed 22 example lines in the prompt right now. The extract has 267 lines of Rocky dialogue in `data/processed/rocky_lines.txt` so plenty of room to shove more in.
+
+Ie hand-added the baseball / new-to-human-things attitude into `data/processed/system_prompt.md` so Rocky still leans into that vibe.
 - PDF script
   - *pls don't sue, rocky is new to ball*
 - Text from the script it using [https://www.pdfforge.org/online/en/extract-text](https://www.pdfforge.org/online/en/extract-text)
