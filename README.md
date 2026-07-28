@@ -5,8 +5,6 @@
 
 ## Self-host your own Rocky (Project Hail Mary) 
 
-![demo](/images/demo-banner.png)
-
 ![fist my bump](/images/fistmybump.gif)
 
 self-hosted Rocky (Project Hail Mary) - small local model, minimal web UI, optional voice.
@@ -31,6 +29,8 @@ task stop    # kill it
 ```
 
 UI at <http://127.0.0.1:67>. See `Taskfile.yml` for the rest (`serve`, `restart`, `status`).
+
+![demo](/images/demo-banner.png)
 
 
 *Using the README a bit like a blog/journal but I hope you can find your way around
